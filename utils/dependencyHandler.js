@@ -19,48 +19,50 @@ function getDependencyManager(language) {
 } 
 
 function installDependencies(language, scriptDir) {    
-let depFile, command, args; 
-if (language === 'python') {
-    depFile = path.join(scriptDir, 'requirements.txt'); 
-        if (!fs.existsSync(depFile)) {
-            console.log('No requirements.txt found, skipping dependency installation');
-            return true; 
+    let depFile, command, args; 
+
+    if (language === 'python') {
+        depFile = path.join(scriptDir, 'requirements.txt'); 
+            if (!fs.existsSync(depFile)) {
+                console.log('No requirements.txt found, skipping dependency installation');
+                return resolve(true); 
+            }
+
+        command = getDependencyManager(language);
+        args = ['-m', 'pip', 'install', '-r', depFile]; 
+
+    } else if (language === 'node') {
+        depFile = path.join(scriptDir, 'package.json'); 
+            if (!fs.existsSync(depFile)) {
+                console.log('No package.json found, skipping dependency installation'); 
+                return resolve(true); 
+            } 
+        command = getDependencyManager(language); 
+        args = ['install']; 
+    }
+
+    console.log(`${depFile} found.... Installing dependencies`); 
+
+    return new Promise((resolve, reject) => {
+    const install_process = spawn(command, args, {
+            cwd: scriptDir,
+            stdio: 'inherit'
+        });
+    install_process.on("close", (code) => {
+        if (code === 0) { 
+            console.log('Dependencies installed successfully. \n'); 
+            return resolve(true); 
+        } else { 
+            console.log(`Dependencies installation failed with code : ${code}`); 
+            return reject(new Error(`Installation failed with code ${code}`)); 
         }
-    command = getDependencyManager(language);
-    args = ['-m', 'pip', 'install', '-r', depFile]; 
-} else if (language === 'node') {
-    depFile = path.join(scriptDir, 'package.json'); 
-        if (!fs.existsSync(depFile)) {
-            console.log('No package.json found, skipping dependency installation'); 
-            return true; 
-        } 
-    command = getDependencyManager(language); 
-    args = ['install']; 
-}
+    }); 
 
-console.log(`${depFile} found.... Installing dependencies`); 
-
-return new Promise((resolve, reject) => {
-const install_process = spawn(command, args, {
-        cwd: scriptDir,
-        stdio: 'inherit'
-     });
-install_process.on("close", (code) => {
-    if(code === '0') { console.log('Dependencies installed successfully. \n'); return resolve(true); }
-    else { console.log(`Dependencies installation failed with code : ${code}`); }
-}); 
-
-install_process.on('error', (err) => {
-    console.error(`Error running dependency manager: ${err.message}`);
-    reject(err);
-}); 
-}); 
+    install_process.on('error', (err) => {
+        console.error(`Error running dependency manager: ${err.message}`);
+        reject(err);
+    }); 
+    }); 
 }
 
 module.exports = { getDependencyManager, installDependencies}
-
-// 3. How would you wait for pip to finish BEFORE running the script?
-
-// 4. What if pip install fails? Should you still run the script?
-
-// 5. Where is pip.exe located relative to python.exe?

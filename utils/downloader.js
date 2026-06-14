@@ -1,10 +1,12 @@
 const fs = require("fs"); 
 const https = require("https"); 
 const path = require("path"); 
+const AdmZip = require("adm-zip"); 
 const tar = require("tar"); 
+
 const cliProgress = require('cli-progress');
 const redirectHandler = require("./networkHandler.js");
-const AdmZip = require("adm-zip"); 
+
 const platform = require("os").platform(); 
 const RUNTIME_DIR = path.join(require("os").homedir(),'.adjust', 'runtimes'); 
 
@@ -27,57 +29,57 @@ async function ensureRuntimeDir(language) {
 }
 
 async function downloadRuntime(language) {
-    return new Promise(async (resolve, reject) => {
-        const url = RUNTIMES[language];
-    if (!url) { return reject(new Error(`Unknown language : ${language}`)); }
+            return new Promise(async (resolve, reject) => {
+                const url = RUNTIMES[language];
+            if (!url) { return reject(new Error(`Unknown language : ${language}`)); }
 
-    const dir = await ensureRuntimeDir(language); 
-    const filename = path.basename(url); 
-    const filepath = path.join(dir, filename); 
+            const dir = await ensureRuntimeDir(language); 
+            const filename = path.basename(url); 
+            const filepath = path.join(dir, filename); 
 
-    if (fs.existsSync(filepath)) {
-        console.log(`✓ Runtime ${language} already exists`); 
-        return resolve(filepath);   // IF TRUE, PROMISE RESOLVED HERE & NO STREAMING NO BUFFERING. 
-    }
-    console.log(`Downloading runtime ${language}.... (drink some water if you haven't)`);
+            if (fs.existsSync(filepath)) {
+                console.log(`✓ Runtime ${language} already exists`); 
+                return resolve(filepath);   // IF TRUE, PROMISE RESOLVED HERE & NO STREAMING NO BUFFERING. 
+            }
+            console.log(`Downloading runtime ${language}.... (drink some water if you didn't)`);
 
-    const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
+            const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
 
-https.get(url, (response) => {
-    redirectHandler(response); 
-    handleresponse(response); 
+    https.get(url, (response) => {
+        redirectHandler(response); 
+        handleresponse(response); 
 
-    function handleresponse(res){
-        const totalSize = parseInt(res.headers['content-length'] ,10); 
-        let downloadedSize = 0; 
+        function handleresponse(res){
+            const totalSize = parseInt(res.headers['content-length'] ,10); 
+            let downloadedSize = 0; 
 
-        progressBar.start(totalSize, 0);
-        const fileStream = fs.createWriteStream(filepath); 
+            progressBar.start(totalSize, 0);
+            const fileStream = fs.createWriteStream(filepath); 
 
-        res.on('data', (chunks) => {
-            downloadedSize += chunks.length; 
-            progressBar.update(downloadedSize); 
-        });
+            res.on('data', (chunks) => {
+                downloadedSize += chunks.length; 
+                progressBar.update(downloadedSize); 
+            });
 
-        res.pipe(fileStream); 
+            res.pipe(fileStream); 
 
-        fileStream.on('finish', () => {
+            fileStream.on('finish', () => {
+                progressBar.stop();
+                fileStream.close();
+                console.log(`Successfully downloaded to: ${filepath}`); 
+                resolve(filepath);
+            });
+            fileStream.on('error', (err) => {
+                progressBar.stop();
+                fileStream.destroy(); 
+                fs.unlink(filepath, () => {console.log(`Some anomality, stream and filePath connection destroyed.`)});
+                reject(err); 
+            }); 
+        }
+        }).on('error', (err) => {
             progressBar.stop();
-            fileStream.close();
-            console.log(`Successfully downloaded to: ${filepath}`); 
-            resolve(filepath);
+            reject(err);
         });
-        fileStream.on('error', (err) => {
-            progressBar.stop();
-            fileStream.destroy(); 
-            fs.unlink(filepath, () => {console.log(`Some anomality, stream and filePath connection destroyed.`)});
-            reject(err); 
-        }); 
-    }
-    }).on('error', (err) => {
-        progressBar.stop();
-        reject(err);
-    });
 }); 
 }
 

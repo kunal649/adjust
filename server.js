@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const { Command } = require('commander');
 const { saveConfig, loadConfig} = require('./utils/config'); 
-const {setupRuntime, getRuntimePath, getRuntimeExecutable} = require('./utils/downloader.js');
+const {setupRuntime, getRuntimePath, getExecutable} = require('./utils/downloader.js');
 const { runFile } = require("./utils/runtimeHandler.js");  
 const program = new Command(); 
 
@@ -11,7 +11,7 @@ program
     .version('1.0.0');
 
 program
-    .command('me')
+    .command('-me')
     .description('Let me handle the heavy liftings for you... \n Downloading dependencies...')
     .action(async () => {
         console.log("Downloading assets...")
@@ -27,21 +27,21 @@ program
         } 
 
         console.log("Setting up languages...");
-    try { 
-        await setupRuntime(language);
-        getRuntimeExecutable(language);  
-        const config = await loadConfig();
-        config.activeLanguage = language;  
-        config.environment[language] = {
-            path: getRuntimePath(language),
-            installed_at: new Date().toISOString()
+        try { 
+            await setupRuntime(language);
+            getExecutable(language);  
+            const config = await loadConfig();
+            config.activeLanguage = language;  
+            config.environment[language] = {
+                path: getRuntimePath(language),
+                installed_at: new Date().toISOString()
+            }
+            await saveConfig(config); 
+            console.log(`Selected: ${language}. Now ready to use!`);
         }
-        await saveConfig(config); 
-        console.log(`Selected: ${language}. Now ready to use!`);
-    }
-    catch (err) {
-         console.error(`Failed to setup ${language}:`, err.message);
-    }
+        catch (err) {
+            console.error(`Failed to setup ${language}:`, err.message);
+        }
     });
 
 program 

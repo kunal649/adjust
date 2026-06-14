@@ -1,6 +1,6 @@
 const { spawn } = require("child_process"); 
 const { loadConfig } = require("./config.js");
-const { getRuntimeExecutable } = require("./downloader.js");
+const { getExecutable } = require("./downloader.js");
 const { installDependencies } = require('./dependencyHandler.js')
 const fs = require("fs");
 const path = require("path");
@@ -19,7 +19,7 @@ try {
         process.exit(1);  
     }
     const language = config.activeLanguage; 
-    const executablePath = getRuntimeExecutable(language);
+    const executablePath = getExecutable(language);
 
     if(!fs.existsSync(executablePath)){ 
         console.log(`Error: ${language} runtime not found. Run adjust stack <language>. `);
