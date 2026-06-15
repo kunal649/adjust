@@ -1,5 +1,5 @@
 
-[![project status](https://img.shields.io/badge/status-in_progress-green.svg)](https://github.com/kunal649/adjust.CLI)
+[![project status](https://img.shields.io/badge/status-completed-green.svg)](https://github.com/kunal649/adjust.CLI)
 [![language Node.js](https://img.shields.io/badge/language-Node.js-green.svg)](https://nodejs.org/)
 
 
