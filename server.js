@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 const { Command } = require('commander');
-const { saveConfig, loadConfig} = require('./utils/config'); 
-const {setupRuntime, getRuntimePath, getExecutable} = require('./utils/downloader.js');
-const { runFile } = require("./utils/runtimeHandler.js");  
+const { saveConfig, loadConfig, readCache, writeCache} = require('./lib/config'); 
+const {setupRuntime, getRuntimePath, getExecutable} = require('./lib/downloader.js');
+const { runFile } = require("./lib/runtimeHandler.js");  
 const program = new Command(); 
 
 program
@@ -30,13 +30,13 @@ program
         try { 
             await setupRuntime(language);
             getExecutable(language);  
-            const config = await loadConfig();
-            config.activeLanguage = language;  
-            config.environment[language] = {
-                path: getRuntimePath(language),
-                installed_at: new Date().toISOString()
-            }
-            await saveConfig(config); 
+                const config = await loadConfig();
+                config.activeLanguage = language;  
+                config.environment[language] = {
+                    path: getRuntimePath(language),
+                    installed_at: new Date().toISOString()
+                } 
+                await saveConfig(config); 
             console.log(`Selected: ${language}. Now ready to use!`);
         }
         catch (err) {
