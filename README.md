@@ -5,7 +5,7 @@
 
 ![Architecture](./arch.png)
 
-Manage isolated Python & Node.js runtimes. Download, cache, and execute scripts without polluting your system environment.
+Manage isolated Python & Node.js runtimes. Download and execute scripts without polluting your system environment.
 
 ## Usage
 
@@ -34,18 +34,16 @@ adjust list
 ## Architecture
 
 - `server.js` - CLI entry point (Commander.js)
-- `config.js` - Persistent config & dependency cache
+- `config.js` - Persistent config
 - `downloader.js` - Stream-based runtime download & extraction
 - `networkHandler.js` - HTTP redirect handling
 - `runtimeHandler.js` - Process spawning & execution
-- `dependencyHandler.js` - Dependency manager (pip/npm) with SHA256 caching
-- `hash.js` - File hashing for cache validation
+- `dependencyHandler.js` - Dependency manager (pip/npm)
 
 ## Key Concepts
 
 - Node.js streams for memory-efficient downloads
 - `child_process.spawn()` for process management
-- SHA256 caching for dependency performance
 - Cross-platform path handling
 - Async/await error handling
 
